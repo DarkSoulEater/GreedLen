@@ -1,14 +1,27 @@
-ZERO() {
-    return 0;
-}
-
-PLUS(int A, int B) {
-    return A + B;
+Fact(int K) {
+    if (K) {
+        return Fact(K - 1) * K;
+    };
+    return 1;
 }
 
 main() {
-    A = 4;
-    B = ZERO() + 2;
-    C = PLUS(A, B / 2) * 2;
-    return C;
+    recursive = 1;
+
+    if (recursive) {
+        res = Fact(4);
+        print(res);
+        return res;
+    };
+
+    K = 5;
+    fact = 1;
+
+    while (K) {
+        print(K);
+        fact = fact * K;
+        print(fact);
+        K = K - 1;
+    };
+    return fact;
 }

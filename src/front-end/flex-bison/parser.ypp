@@ -57,23 +57,31 @@
 
     PRINT "print"
     RETURN "return"
+    IF "if"
+    WHILE "while"
     INT "int"
 ;
 
 %token <int> INT_VAL "int_val"
 %token <std::string> ID "identifier"
 
-%nterm <TranslUnit::Storage> EXPRS;
-
 %nterm <std::unique_ptr<TranslUnit>> UNIT;
 %nterm <TranslUnit::Storage> FUNCTION_LIST;
+
 %nterm <std::unique_ptr<Function>> FUNCTION;
 %nterm <std::unique_ptr<ParamList>> PARAM_LIST;
-%nterm <Function::Storage> STATEMENTS;
+
+%nterm <std::unique_ptr<CodeBlock>> CODE_BLOCK;
+%nterm <CodeBlock::Storage> STATEMENTS;
+
 %nterm <std::unique_ptr<Statement>> STATEMENT;
 %nterm <std::unique_ptr<VarDecl>> VARDECL;
-%nterm <std::unique_ptr<AssignStatement>> ASSIGN_STATEMENT;
 %nterm <std::unique_ptr<ReturnStatement>> RETURN_STATEMENT;
+%nterm <std::unique_ptr<AssignStatement>> ASSIGN_STATEMENT;
+%nterm <std::unique_ptr<IfStatement>> IF_STATEMENT;
+%nterm <std::unique_ptr<WhileStatement>> WHILE_STATEMENT;
+%nterm <std::unique_ptr<PrintStatement>> PRINT_STATEMENT;
+
 %nterm <std::unique_ptr<Expression>> EXPR;
 %nterm <std::unique_ptr<ParamValueList>> PARAM_VALUE_LIST;
 
@@ -92,8 +100,8 @@ FUNCTION_LIST:
 ;
 
 FUNCTION:
-    ID "(" PARAM_LIST ")" "{" STATEMENTS "}"
-        { $$ = std::make_unique<Function>(mv($1), mv($3), mv($6)); }
+    ID "(" PARAM_LIST ")" CODE_BLOCK
+        { $$ = std::make_unique<Function>(mv($1), mv($3), mv($5)); }
 ;
 
 PARAM_LIST:
@@ -102,29 +110,49 @@ PARAM_LIST:
   | PARAM_LIST "," VARDECL  { $1->Add(mv($3)); $$ = mv($1); }
 ;
 
+CODE_BLOCK:
+    "{" STATEMENTS "}" { $$ = std::make_unique<CodeBlock>(mv($2)); }
+;
+
 STATEMENTS:
-    %empty { $$ = Function::Storage(); }
+    %empty { $$ = CodeBlock::Storage(); }
    | STATEMENT SEMICOLON STATEMENTS { $3.push_front(mv($1)); $$ = mv($3); }
 ;
 
 STATEMENT:
-    SEMICOLON { $$ = std::make_unique<Statement>(); }
-  | "{" STATEMENT "}"   { $$ = mv($2); }
+    "{" STATEMENT "}"   { $$ = mv($2); }
   | VARDECL             { $$ = mv($1); }
   | RETURN_STATEMENT    { $$ = mv($1); }
   | ASSIGN_STATEMENT    { $$ = mv($1); }
+  | IF_STATEMENT        { $$ = mv($1); }
+  | WHILE_STATEMENT     { $$ = mv($1); }
+  | PRINT_STATEMENT     { $$ = mv($1); }
 ;
 
 VARDECL:
     INT ID { $$ = std::make_unique<VarDecl>(mv($2)); }
 ;
 
+RETURN_STATEMENT:
+    RETURN EXPR { $$ = std::make_unique<ReturnStatement>(mv($2)); }
+;
+
 ASSIGN_STATEMENT:
     ID "=" EXPR { $$ = std::make_unique<AssignStatement>(mv($1), mv($3)); }
 ;
 
-RETURN_STATEMENT:
-    RETURN EXPR { $$ = std::make_unique<ReturnStatement>(mv($2)); }
+IF_STATEMENT:
+    IF "(" EXPR ")" CODE_BLOCK
+      {$$ = std::make_unique<IfStatement>(mv($3), mv($5)); }
+;
+
+WHILE_STATEMENT:
+    WHILE "(" EXPR ")" CODE_BLOCK 
+      { $$ = std::make_unique<WhileStatement>(mv($3), mv($5)); }
+;
+
+PRINT_STATEMENT:
+    PRINT "(" EXPR ")" { $$ = std::make_unique<PrintStatement>(mv($3)); }
 ;
 
 EXPRS:

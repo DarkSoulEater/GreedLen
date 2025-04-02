@@ -35,17 +35,11 @@ void GraphvizVisitor::Visit(CallFunction* call) {
   stack_vertex_.Push(vert);
 }
 
-void GraphvizVisitor::Visit(FunctionList* funcs) {
-  assert(0);
-}
-
 void GraphvizVisitor::Visit(Function* func) {
   auto vert = graph_.AddVertex(func->id);
 
-  for (auto& st : func->statements) {
-    st->Accept(this);
-    graph_.AddEdge(vert, stack_vertex_.Pop(), "");
-  }
+  func->block->Accept(this);
+  graph_.AddEdge(vert, stack_vertex_.Pop(), "");
 
   stack_vertex_.Push(vert);
 }
@@ -55,6 +49,17 @@ void GraphvizVisitor::Visit(ParamList* params) {
 
   for (auto& param : params->params) {
     param->Accept(this);
+    graph_.AddEdge(vert, stack_vertex_.Pop(), "");
+  }
+
+  stack_vertex_.Push(vert);
+}
+
+void GraphvizVisitor::Visit(CodeBlock* block) {
+  auto vert = graph_.AddVertex("{}");
+  
+  for (auto& st : block->statements) {
+    st->Accept(this);
     graph_.AddEdge(vert, stack_vertex_.Pop(), "");
   }
 
@@ -89,11 +94,6 @@ void GraphvizVisitor::Visit(TranslUnit* unit) {
   stack_vertex_.Push(vert);
 }
 
-void GraphvizVisitor::Visit(Statement* st) {
-  auto vert = graph_.AddVertex("St");
-  stack_vertex_.Push(vert);
-}
-
 void GraphvizVisitor::Visit(AssignStatement* st) {
   auto vert = graph_.AddVertex("=");
 
@@ -114,6 +114,39 @@ void GraphvizVisitor::Visit(VarDecl* var) {
 void GraphvizVisitor::Visit(ReturnStatement* st) {
   auto vert = graph_.AddVertex("return");
   
+  st->expr->Accept(this);
+  graph_.AddEdge(vert, stack_vertex_.Pop(), "");
+
+  stack_vertex_.Push(vert);
+}
+
+void GraphvizVisitor::Visit(IfStatement* st) {
+  auto vert = graph_.AddVertex("if");
+
+  st->cond->Accept(this);
+  graph_.AddEdge(vert, stack_vertex_.Pop(), "");
+
+  st->block->Accept(this);
+  graph_.AddEdge(vert, stack_vertex_.Pop(), "");
+
+  stack_vertex_.Push(vert);
+}
+
+void GraphvizVisitor::Visit(WhileStatement* st) {
+  auto vert = graph_.AddVertex("while");
+
+  st->cond->Accept(this);
+  graph_.AddEdge(vert, stack_vertex_.Pop(), "");
+
+  st->block->Accept(this);
+  graph_.AddEdge(vert, stack_vertex_.Pop(), "");
+
+  stack_vertex_.Push(vert);
+}
+
+void GraphvizVisitor::Visit(PrintStatement* st) {
+  auto vert = graph_.AddVertex("print");
+
   st->expr->Accept(this);
   graph_.AddEdge(vert, stack_vertex_.Pop(), "");
 

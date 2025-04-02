@@ -3,5 +3,4 @@
 
 class Statement : public BaseNode {
  public:
-  DefineAccept();
 };

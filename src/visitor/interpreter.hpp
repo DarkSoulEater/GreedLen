@@ -21,6 +21,7 @@ class InterpreterVisitor : public Visitor {
 
   std::unordered_map<std::string_view, Function*> funcs_;
 
+  // Draft Scope
   class Scope {
    public:
     void Push() {

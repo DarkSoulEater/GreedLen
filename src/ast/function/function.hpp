@@ -7,17 +7,19 @@
 
 class Function : public BaseNode {
  public:
-  using Storage = std::deque<std::unique_ptr<Statement>>;
-
-  Function(std::string&& id, std::unique_ptr<ParamList> param_list, Storage&& statements)
+  Function(
+      std::string&& id, 
+      std::unique_ptr<ParamList> param_list, 
+      std::unique_ptr<CodeBlock> block
+  )
     : id(id)
     , param_list(std::move(param_list))
-    , statements(std::move(statements))
+    , block(std::move(block))
   {}
 
   DefineAccept();
 
   std::string id;
   std::unique_ptr<ParamList> param_list;
-  Storage statements;
+  std::unique_ptr<CodeBlock> block;
 };

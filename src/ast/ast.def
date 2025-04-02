@@ -4,6 +4,9 @@
   static_assert(0);
 #endif
 
+// code
+DefAstNode(CodeBlock)
+
 // expressions
 DefAstNode(ArithmeticExpression)
 DefAstNode(IntExpression)
@@ -13,7 +16,6 @@ DefAstNode(CallFunction)
 
 // functions
 DefAstNode(Function)
-DefAstNode(FunctionList)
 DefAstNode(ParamList)
 DefAstNode(ParamValueList)
 
@@ -21,9 +23,11 @@ DefAstNode(ParamValueList)
 DefAstNode(TranslUnit)
 
 // statement
-DefAstNode(Statement)
 DefAstNode(AssignStatement)
 DefAstNode(VarDecl)
 DefAstNode(ReturnStatement)
+DefAstNode(IfStatement)
+DefAstNode(WhileStatement)
+DefAstNode(PrintStatement)
 
 #undef DefAstNode
