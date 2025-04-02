@@ -1,0 +1,29 @@
+// #define DefAstNode(CLASS_NAME)
+
+#ifndef DefAstNode
+  static_assert(0);
+#endif
+
+// expressions
+DefAstNode(ArithmeticExpression)
+DefAstNode(IntExpression)
+DefAstNode(IdExpression)
+DefAstNode(CallFunction)
+
+
+// functions
+DefAstNode(Function)
+DefAstNode(FunctionList)
+DefAstNode(ParamList)
+DefAstNode(ParamValueList)
+
+// program
+DefAstNode(TranslUnit)
+
+// statement
+DefAstNode(Statement)
+DefAstNode(AssignStatement)
+DefAstNode(VarDecl)
+DefAstNode(ReturnStatement)
+
+#undef DefAstNode

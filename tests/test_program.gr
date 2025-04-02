@@ -1,0 +1,14 @@
+ZERO() {
+    return 0;
+}
+
+PLUS(int A, int B) {
+    return A + B;
+}
+
+main() {
+    A = 4;
+    B = ZERO() + 2;
+    C = PLUS(A, B / 2) * 2;
+    return C;
+}

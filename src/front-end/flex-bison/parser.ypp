@@ -1,0 +1,161 @@
+%skeleton "lalr1.cc"
+%require "3.5"
+
+%defines
+%define api.token.constructor
+%define api.value.type variant
+%define parse.assert
+
+%code requires {
+    #include <memory>
+    #include "ast/ast.hpp"
+
+    class FrontEnd;
+    class Lexer;
+}
+
+%define parse.trace
+%define parse.error verbose
+
+%code {
+    #include "lexer.hpp"
+    #include "parser.tab.hpp"
+    #include "../frontend.hpp"
+
+    #define mv(ID) std::move(ID)
+    #define mk_arithm_expr(TYPE, E1, E2) \
+        std::make_unique<ArithmeticExpression>(ArithmeticExpression::Type::TYPE, mv(E1), mv(E2))
+
+    /* Redefine parser to use our function from scanner */
+    static yy::parser::symbol_type yylex(Lexer &lexer) {
+        return lexer.ScanToken();
+    }
+}
+
+%lex-param { Lexer& lexer }
+%parse-param { Lexer& lexer }
+%parse-param { FrontEnd& frontend }
+
+%locations
+
+%define api.token.prefix {TOK_}
+
+%token
+    EOF 0
+    ASSIGN "="
+    PLUS "+"
+    MINUS "-"
+    STAR "*"
+    SLASH "/"
+    COMMA ","
+    COLON ":"
+    LPAREN "("
+    RPAREN ")"
+    LSCOPE "{"
+    RSCOPE "}"
+    SEMICOLON ";"
+
+    PRINT "print"
+    RETURN "return"
+    INT "int"
+;
+
+%token <int> INT_VAL "int_val"
+%token <std::string> ID "identifier"
+
+%nterm <TranslUnit::Storage> EXPRS;
+
+%nterm <std::unique_ptr<TranslUnit>> UNIT;
+%nterm <TranslUnit::Storage> FUNCTION_LIST;
+%nterm <std::unique_ptr<Function>> FUNCTION;
+%nterm <std::unique_ptr<ParamList>> PARAM_LIST;
+%nterm <Function::Storage> STATEMENTS;
+%nterm <std::unique_ptr<Statement>> STATEMENT;
+%nterm <std::unique_ptr<VarDecl>> VARDECL;
+%nterm <std::unique_ptr<AssignStatement>> ASSIGN_STATEMENT;
+%nterm <std::unique_ptr<ReturnStatement>> RETURN_STATEMENT;
+%nterm <std::unique_ptr<Expression>> EXPR;
+%nterm <std::unique_ptr<ParamValueList>> PARAM_VALUE_LIST;
+
+%%
+
+%start UNIT;
+
+UNIT:
+    FUNCTION_LIST { $$ = std::make_unique<TranslUnit>(mv($1));
+                    frontend.unit_ = mv($$); }
+;
+
+FUNCTION_LIST:
+    %empty { $$ = TranslUnit::Storage(); }
+  | FUNCTION_LIST FUNCTION { $1.push_back(mv($2)); $$ = mv($1); }
+;
+
+FUNCTION:
+    ID "(" PARAM_LIST ")" "{" STATEMENTS "}"
+        { $$ = std::make_unique<Function>(mv($1), mv($3), mv($6)); }
+;
+
+PARAM_LIST:
+    %empty                  { $$ = std::make_unique<ParamList>(); }
+  | VARDECL                 { $$ = std::make_unique<ParamList>(mv($1)); }
+  | PARAM_LIST "," VARDECL  { $1->Add(mv($3)); $$ = mv($1); }
+;
+
+STATEMENTS:
+    %empty { $$ = Function::Storage(); }
+   | STATEMENT SEMICOLON STATEMENTS { $3.push_front(mv($1)); $$ = mv($3); }
+;
+
+STATEMENT:
+    SEMICOLON { $$ = std::make_unique<Statement>(); }
+  | "{" STATEMENT "}"   { $$ = mv($2); }
+  | VARDECL             { $$ = mv($1); }
+  | RETURN_STATEMENT    { $$ = mv($1); }
+  | ASSIGN_STATEMENT    { $$ = mv($1); }
+;
+
+VARDECL:
+    INT ID { $$ = std::make_unique<VarDecl>(mv($2)); }
+;
+
+ASSIGN_STATEMENT:
+    ID "=" EXPR { $$ = std::make_unique<AssignStatement>(mv($1), mv($3)); }
+;
+
+RETURN_STATEMENT:
+    RETURN EXPR { $$ = std::make_unique<ReturnStatement>(mv($2)); }
+;
+
+EXPRS:
+   %empty { /*$$ = std::deque<std::unique_ptr<Expression>>();*/ }
+  | EXPR SEMICOLON EXPRS { /*$3.push_front(mv($1)); $$ = mv($3);*/ }
+;
+
+%left "+" "-";
+%left "*" "/";
+
+EXPR:
+    INT_VAL { $$ = std::make_unique<IntExpression>($1); }
+  | ID      { $$ = std::make_unique<IdExpression>(mv($1)); }
+  | EXPR "+" EXPR { $$ = mk_arithm_expr(ADD, $1, $3); }
+  | EXPR "-" EXPR { $$ = mk_arithm_expr(SUB, $1, $3); }
+  | EXPR "*" EXPR { $$ = mk_arithm_expr(MUL, $1, $3); }
+  | EXPR "/" EXPR { $$ = mk_arithm_expr(DIV, $1, $3); }
+  | "(" EXPR ")"  { $$ = mv($2); }
+  | ID "(" PARAM_VALUE_LIST ")"
+        { $$ = std::make_unique<CallFunction>(mv($1), mv($3)); }
+;
+
+PARAM_VALUE_LIST:
+    %empty                      { $$ = std::make_unique<ParamValueList>();   }
+  | EXPR                        { $$ = std::make_unique<ParamValueList>(mv($1)); }
+  | PARAM_VALUE_LIST "," EXPR   { $1->Add(mv($3)); $$ = mv($1); }
+;
+
+%%
+
+void yy::parser::error(const location_type& l, const std::string& m)
+{
+  std::cerr << l <<  ": " << m << '\n';
+}

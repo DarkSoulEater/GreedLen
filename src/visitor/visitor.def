@@ -1,0 +1,3 @@
+#define DefAstNode(CLASS_NAME) \
+  void Visit(CLASS_NAME*) override;
+  #include "ast/ast.def"
