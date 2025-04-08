@@ -8,6 +8,7 @@ set(
         print.cpp
         graphviz.cpp
         interpreter.cpp
+        llvmir.cpp
 )
 
 add_library(

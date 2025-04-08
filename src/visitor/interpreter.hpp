@@ -14,9 +14,10 @@ class InterpreterVisitor : public Visitor {
 
   void Interpret(TranslUnit* unit);
 
-  #include "visitor.def"
-
+  
  private:
+  #include "visitor.def"
+  
   std::string_view main_func_name = "main";
 
   std::unordered_map<std::string_view, Function*> funcs_;

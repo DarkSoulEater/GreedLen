@@ -18,5 +18,5 @@ class WhileStatement : public Statement {
   DefineAccept();
 
   std::unique_ptr<Expression> cond;
-  std::unique_ptr<CodeBlock> block;
+  std::unique_ptr<CodeBlock> block; // TODO: body
 };

@@ -1,12 +1,18 @@
-Fact(int K) {
+
+fn Fact(let K: i32) {
     if (K) {
         return Fact(K - 1) * K;
     };
     return 1;
 }
 
-main() {
-    recursive = 1;
+fn main() {
+    let recursive: i32;
+    let res: i32;
+    let K: i32;
+    let fact: i32;
+
+    recursive = 0;
 
     if (recursive) {
         res = Fact(4);

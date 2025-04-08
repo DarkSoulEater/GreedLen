@@ -47,11 +47,15 @@ id [_a-zA-Z][_a-zA-Z0-9]*
 "{"     return yy::parser::make_LSCOPE(loc);
 "}"     return yy::parser::make_RSCOPE(loc);
 ";"     return yy::parser::make_SEMICOLON(loc);
+":"     return yy::parser::make_COLON(loc);
 
 "return"    return yy::parser::make_RETURN(loc);
 "if"        return yy::parser::make_IF(loc);
 "while"     return yy::parser::make_WHILE(loc);
 "print"     return yy::parser::make_PRINT(loc);
+"let"       return yy::parser::make_LET(loc);
+"i32"       return yy::parser::make_i32(loc);
+"fn"        return yy::parser::make_FN(loc);
 "int" return yy::parser::make_INT(loc);
 
 {int_val}   return make_INT(yytext, loc);
