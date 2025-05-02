@@ -1,0 +1,27 @@
+Fact(int K) {
+    if (K) {
+        return Fact(K - 1) * K;
+    };
+    return 1;
+}
+
+main() {
+    recursive = 1;
+
+    if (recursive) {
+        res = Fact(4);
+        print(res);
+        return res;
+    };
+
+    K = 5;
+    fact = 1;
+
+    while (K) {
+        print(K);
+        fact = fact * K;
+        print(fact);
+        K = K - 1;
+    };
+    return fact;
+}

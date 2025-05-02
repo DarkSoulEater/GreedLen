@@ -1,0 +1,70 @@
+%{
+    #include "lexer.hpp"
+    #include <cstdlib>
+    #include <cstring>
+    #include <string>
+%}
+
+%option noyywrap nounput noinput batch debug
+
+%option c++
+%option yyclass="Lexer"
+
+%{
+    using parser = yy::parser;
+    static yy::parser::symbol_type make_INT(
+        const char* str,
+        const yy::parser::location_type& loc
+    );
+%}
+
+blank [ \t\r]
+int_val [0-9]+
+id [_a-zA-Z][_a-zA-Z0-9]*
+
+%{
+    #define YY_USER_ACTION loc.columns(yyleng);
+%}
+
+%%
+
+%{
+    yy::location loc;
+    loc.step();
+%}
+
+{blank}+    loc.step();
+\n+         loc.lines(yyleng); loc.step();
+
+"="     return parser::make_ASSIGN(loc);
+"+"     return parser::make_PLUS(loc);
+"-"     return parser::make_MINUS(loc);
+"*"     return parser::make_STAR(loc);
+"/"     return parser::make_SLASH(loc);
+","     return parser::make_COMMA(loc);
+"("     return parser::make_LPAREN(loc);
+")"     return parser::make_RPAREN(loc);
+"{"     return yy::parser::make_LSCOPE(loc);
+"}"     return yy::parser::make_RSCOPE(loc);
+";"     return yy::parser::make_SEMICOLON(loc);
+
+"return"    return yy::parser::make_RETURN(loc);
+"if"        return yy::parser::make_IF(loc);
+"while"     return yy::parser::make_WHILE(loc);
+"print"     return yy::parser::make_PRINT(loc);
+"int" return yy::parser::make_INT(loc);
+
+{int_val}   return make_INT(yytext, loc);
+{id}    return yy::parser::make_ID(yytext, loc);
+
+
+<<EOF>> return yy::parser::make_EOF(loc);
+%%
+
+static yy::parser::symbol_type make_INT(
+    const char* str,
+    const yy::parser::location_type& loc
+) {
+    int val = strtol(str, NULL, 10);
+    return yy::parser::make_INT_VAL(val, loc);
+}
