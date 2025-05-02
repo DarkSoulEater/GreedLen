@@ -12,14 +12,14 @@ class GraphvizVisitor : public Visitor {
  public:
   GraphvizVisitor() {}
 
-  #define DefAstNode(CLASS_NAME) \
-  void Visit(CLASS_NAME*) override;
-  #include "ast/ast.def"
-
+  void Visit(BaseNode* node);
+  
   bool Write(const std::string_view& out_file_name);
-
+  
  private:
   Dot graph_;
+  
+  #include "visitor.def"
 
   class SingleElemStack {
    public:

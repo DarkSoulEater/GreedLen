@@ -1,31 +1,19 @@
 #include "frontend.hpp"
 #include <fstream>
 
-#include "visitor/print.hpp"
-#include "visitor/graphviz.hpp"
-#include "visitor/interpreter.hpp"
-
-FrontEnd::FrontEnd()
-    : lexer_()
+FrontEnd::FrontEnd(Argument& args)
+    : args_(args)
+    , lexer_()
     , parser_(lexer_, *this)
 {}
 
-int FrontEnd::ParseFile(std::ifstream* file) {
+std::optional<std::unique_ptr<TranslUnit>>
+FrontEnd::ParseFile(std::ifstream* file) {
     lexer_.yyrestart(file);
 
     auto res = parser_.parse();
+    if (res != 0)
+        return std::nullopt;
 
-    // PrintVisitor visitor;
-    // unit_->Accept(&visitor);
-
-    std::cerr << "OK\n";
-
-    GraphvizVisitor vis;
-    unit_->Accept(&vis);
-    vis.Write("");
-
-    InterpreterVisitor inerpreter;
-    inerpreter.Interpret(unit_.get());
-
-    return res;
+    return {std::move(unit_)};
 }

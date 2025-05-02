@@ -60,6 +60,10 @@
     IF "if"
     WHILE "while"
     INT "int"
+
+    FN "fn"
+    i32 "i32"
+    LET "let"
 ;
 
 %token <int> INT_VAL "int_val"
@@ -100,8 +104,8 @@ FUNCTION_LIST:
 ;
 
 FUNCTION:
-    ID "(" PARAM_LIST ")" CODE_BLOCK
-        { $$ = std::make_unique<Function>(mv($1), mv($3), mv($5)); }
+    FN ID "(" PARAM_LIST ")" CODE_BLOCK
+        { $$ = std::make_unique<Function>(mv($2), mv($4), mv($6)); }
 ;
 
 PARAM_LIST:
@@ -130,7 +134,7 @@ STATEMENT:
 ;
 
 VARDECL:
-    INT ID { $$ = std::make_unique<VarDecl>(mv($2)); }
+    LET ID ":" i32 { $$ = std::make_unique<VarDecl>(mv($2)); }
 ;
 
 RETURN_STATEMENT:

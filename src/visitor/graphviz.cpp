@@ -1,6 +1,10 @@
 #include "graphviz.hpp"
 #include "ast/ast.hpp"
 
+void GraphvizVisitor::Visit(BaseNode* node) {
+  node->Accept(this);
+}
+
 void GraphvizVisitor::Visit(IntExpression* expr) {
   auto vert = graph_.AddVertexWithCopy(std::to_string(expr->value));
   stack_vertex_.Push(vert);
@@ -154,6 +158,5 @@ void GraphvizVisitor::Visit(PrintStatement* st) {
 }
 
 bool GraphvizVisitor::Write(const std::string_view& out_file_name) {
-  return graph_.Write("doc/graph.dot");
   return graph_.Write(out_file_name);
 }
